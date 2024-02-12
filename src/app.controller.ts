@@ -27,6 +27,7 @@ export class AppController {
       obj.param1,
       obj.param2
     ))
+    console.log("a");
     return objectTreated;
   }
 }
