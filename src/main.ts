@@ -7,4 +7,4 @@ async function bootstrap() {
 }
 bootstrap();
 
-// qualquer coisa
+// qualquer coisa alterado
