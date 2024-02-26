@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { UserData } from "./interfaces/create-user";
 import { HttpService } from "@nestjs/axios";
-import { ExternalAddressData } from "./interfaces/external-address- data";
+import { ExternalAddressData } from "./interfaces/external-address-data";
 import { lastValueFrom } from "rxjs";
 
 @Injectable()
