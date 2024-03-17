@@ -18,5 +18,5 @@ export class UserData {
   email: string;
 
   @IsString()
-  senha: string;
+  password: string;
 }
