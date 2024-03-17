@@ -1,18 +1,22 @@
-import { IsDateString, IsEmail, IsNumber, IsString } from "class-validator";
+import {
+  IsDateString,
+  IsEmail,
+  IsString,
+} from 'class-validator';
 
 export class UserData {
-    @IsString()
-    name: string;
+  @IsString()
+  name: string;
 
-    @IsDateString()
-    birthDate: Date;
+  @IsString()
+  lastName: string;
 
-    @IsEmail()
-    email: string;
+  @IsDateString()
+  birthDate: Date;
 
-    @IsNumber()
-    zipCode: number
+  @IsEmail()
+  email: string;
 
-    @IsString()
-    complement: string;
+  @IsString()
+  senha: string;
 }
