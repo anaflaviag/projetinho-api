@@ -1,0 +1,17 @@
+version: '3.1'
+
+services:
+
+  mongo:
+    image: mongo
+    container_name: projetinho-api-mongo
+    ports:
+      - 27017:27017
+    networks:
+      - projetinho-api-mongo
+
+networks:
+  projetinho-api-mongo:
+    driver: bridge
+
+#connection url: mongodb://connectionData:port/network results in mongodb://localhost:27017/projetinho-api-mongo
