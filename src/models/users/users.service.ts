@@ -29,4 +29,13 @@ export class UsersService {
       message: 'User created with sucess',
     };
   }
+
+  async deleteUser(name: string) {
+    const user = await this.userDocument.findOneAndDelete({ name: name });
+    if (!user) {
+      throw new HttpException('user not found', HttpStatus.NOT_FOUND);
+    }
+
+    return `The user with ID "${name}" has been successfully deleted.`;
+  }
 }
