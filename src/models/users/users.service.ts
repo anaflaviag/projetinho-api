@@ -1,9 +1,14 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+} from '@nestjs/common';
 import { UserData } from './interfaces/create-user';
 import { HttpService } from '@nestjs/axios';
 import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument } from './schemas/user.schema';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 
 @Injectable()
 export class UsersService {
@@ -16,7 +21,6 @@ export class UsersService {
     const validateEmail = await this.userDocument.findOne({
       email: userBody.email,
     });
-    console.log(validateEmail);
     if (validateEmail) {
       throw new HttpException(
         'already exists an user with the same e-mail',
@@ -30,12 +34,17 @@ export class UsersService {
     };
   }
 
-  async deleteUser(name: string) {
-    const user = await this.userDocument.findOneAndDelete({ name: name });
+  async deleteUser(id: string) {
+    if (!Types.ObjectId.isValid(id)) {
+      throw new HttpException('invalid id', HttpStatus.BAD_REQUEST);
+    }
+    const user = await this.userDocument.findOneAndDelete({ _id: id });
     if (!user) {
       throw new HttpException('user not found', HttpStatus.NOT_FOUND);
     }
-
-    return `The user with ID "${name}" has been successfully deleted.`;
+    return {
+      id: user._id,
+      message: 'User deleted with sucess',
+    };
   }
 }

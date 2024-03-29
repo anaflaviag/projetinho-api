@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Post, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Delete, Param, Post } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UserData } from './interfaces/create-user';
 
@@ -6,15 +6,13 @@ import { UserData } from './interfaces/create-user';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  //passei por aqui
-
   @Post('create')
-  createUser(@Body(new ValidationPipe()) body: UserData) {
+  createUser(@Body() body: UserData) {
     return this.usersService.createUser(body);
   }
 
-  @Delete('delete/name')
-  deleteUser(@Body('name') name: string) {
-    return this.usersService.deleteUser(name);
+  @Delete('delete/:id')
+  deleteUser(@Param('id') id: string) {
+    return this.usersService.deleteUser(id);
   }
 }

@@ -1,8 +1,4 @@
-import {
-  IsDateString,
-  IsEmail,
-  IsString,
-} from 'class-validator';
+import { IsDateString, IsEmail, IsString } from 'class-validator';
 
 export class UserData {
   @IsString()
