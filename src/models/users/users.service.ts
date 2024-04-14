@@ -58,15 +58,27 @@ export class UsersService {
 
   async getUsers(filters: Filters) {
     const queryFilters = {};
-    if (filters.name) {
-      queryFilters['name'] = filters.name;
+    const { pageNumber, pageItems, name, lastName, orderBy } = filters;
+    let skipNumber = 0;
+    let limitNumber = 10;
+
+    if (pageNumber && pageItems && pageNumber > 0) {
+      skipNumber = (pageNumber - 1) * pageItems;
+      limitNumber = pageItems;
     }
 
-    if (filters.lastName) {
-      queryFilters['lastName'] = filters.lastName;
+    if (name) {
+      queryFilters['name'] = name;
     }
 
-    const users = await this.userDocument.find(queryFilters);
+    if (lastName) {
+      queryFilters['lastName'] = lastName;
+    }
+
+    const users = await this.userDocument
+      .find(queryFilters)
+      .limit(limitNumber)
+      .skip(skipNumber);
     return users.map((obj) => {
       return {
         name: obj.name,
