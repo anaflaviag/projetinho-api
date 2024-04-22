@@ -10,6 +10,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument } from './schemas/user.schema';
 import { Model, Types } from 'mongoose';
 import { Filters } from './interfaces/user-filters';
+import { UpdateUserData } from './interfaces/update-user';
 
 @Injectable()
 export class UsersService {
@@ -71,9 +72,7 @@ export class UsersService {
       queryFilters['name'] = name;
     }
 
-    if (lastName) {
-      queryFilters['lastName'] = lastName;
-    }
+    if (lastName) queryFilters['lastName'] = lastName;
 
     const users = await this.userDocument
       .find(queryFilters)
@@ -87,6 +86,26 @@ export class UsersService {
         birthDate: obj.birthDate,
       };
     });
+  }
+
+  async updateUser(id: string, body: UpdateUserData) {
+    this.validateId(id);
+    await this.validateUser(id);
+
+    const updateData = {};
+    const { name, lastName, birthDate, password } = body;
+
+    if (name) updateData['name'] = name;
+    if (lastName) updateData['lastName'] = lastName;
+    if (birthDate) updateData['birthDate'] = birthDate;
+    if (password) updateData['password'] = password;
+
+    await this.userDocument.updateOne({ _id: id }, { $set: updateData });
+
+    return {
+      id: id,
+      message: 'User updated with sucess',
+    };
   }
 
   private validateId(id: string) {
