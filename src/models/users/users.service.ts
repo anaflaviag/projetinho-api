@@ -11,18 +11,21 @@ import { User, UserDocument } from './schemas/user.schema';
 import { Model, Types } from 'mongoose';
 import { Filters } from './interfaces/user-filters';
 import { UpdateUserData } from './interfaces/update-user';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectModel(User.name) private userDocument: Model<UserDocument>,
-    private readonly requestService: HttpService,
   ) {}
 
   async createUser(userBody: UserData) {
     const validateEmail = await this.userDocument.findOne({
       email: userBody.email,
     });
+
+    userBody.password = await bcrypt.hash(userBody.password, 10);
+
     if (validateEmail) {
       throw new HttpException(
         'already exists an user with the same e-mail',
@@ -90,7 +93,7 @@ export class UsersService {
 
   async updateUser(id: string, body: UpdateUserData) {
     this.validateId(id);
-    await this.validateUser(id);
+    const user = await this.validateUser(id);
 
     const updateData = {};
     const { name, lastName, birthDate, password } = body;
@@ -98,7 +101,17 @@ export class UsersService {
     if (name) updateData['name'] = name;
     if (lastName) updateData['lastName'] = lastName;
     if (birthDate) updateData['birthDate'] = birthDate;
-    if (password) updateData['password'] = password;
+    if (password) {
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (isMatch) {
+        throw new HttpException(
+          'new password must be different from the last one',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      const hashedPassword = await bcrypt.hash(password, 10);
+      updateData['password'] = hashedPassword;
+    }
 
     await this.userDocument.updateOne({ _id: id }, { $set: updateData });
 
