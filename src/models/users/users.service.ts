@@ -9,7 +9,7 @@ import { HttpService } from '@nestjs/axios';
 import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument } from './schemas/user.schema';
 import { Model, Types } from 'mongoose';
-import { Filters } from './interfaces/user-filters';
+import { Filters, OrderBy, OrderDirection } from './interfaces/user-filters';
 import { UpdateUserData } from './interfaces/update-user';
 import * as bcrypt from 'bcrypt';
 
@@ -24,7 +24,11 @@ export class UsersService {
       email: userBody.email,
     });
 
-    userBody.password = await bcrypt.hash(userBody.password, 10);
+    const { name, lastName, password } = userBody;
+
+    userBody.password = await bcrypt.hash(password, 10);
+    userBody.name = name[0].toUpperCase() + name.slice(1);
+    userBody.lastName = lastName[0].toUpperCase() + lastName.slice(1);
 
     if (validateEmail) {
       throw new HttpException(
@@ -62,7 +66,10 @@ export class UsersService {
 
   async getUsers(filters: Filters) {
     const queryFilters = {};
-    const { pageNumber, pageItems, name, lastName, orderBy } = filters;
+    const { pageNumber, pageItems, name, lastName, orderBy, orderDirection } =
+      filters;
+    const order = {};
+
     let skipNumber = 0;
     let limitNumber = 10;
 
@@ -77,8 +84,14 @@ export class UsersService {
 
     if (lastName) queryFilters['lastName'] = lastName;
 
+    if (OrderBy[orderBy] && OrderDirection[orderDirection]) {
+      order[orderBy] = orderDirection === OrderDirection['asc'] ? -1 : 1;
+      console.log(order);
+    }
+
     const users = await this.userDocument
       .find(queryFilters)
+      .sort(order)
       .limit(limitNumber)
       .skip(skipNumber);
     return users.map((obj) => {
@@ -98,8 +111,16 @@ export class UsersService {
     const updateData = {};
     const { name, lastName, birthDate, password } = body;
 
-    if (name) updateData['name'] = name;
-    if (lastName) updateData['lastName'] = lastName;
+    if (name) {
+      const treatedName = name[0].toUpperCase() + name.slice(1);
+      updateData['name'] = treatedName;
+    }
+
+    if (lastName) {
+      const treatedLastName = lastName[0].toUpperCase() + lastName.slice(1);
+      updateData['lastName'] = treatedLastName;
+    }
+
     if (birthDate) updateData['birthDate'] = birthDate;
     if (password) {
       const isMatch = await bcrypt.compare(password, user.password);
