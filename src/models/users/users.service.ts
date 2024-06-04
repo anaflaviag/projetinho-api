@@ -7,7 +7,7 @@ import {
 import { UserData } from './interfaces/create-user';
 import { HttpService } from '@nestjs/axios';
 import { InjectModel } from '@nestjs/mongoose';
-import { User, UserDocument } from './schemas/user.schema';
+import { User, UserDocument } from './schema/user.schema';
 import { Model, Types } from 'mongoose';
 import { Filters, OrderBy, OrderDirection } from './interfaces/user-filters';
 import { UpdateUserData } from './interfaces/update-user';

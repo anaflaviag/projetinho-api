@@ -3,8 +3,9 @@ import { UsersController } from './models/users/users.controller';
 import { UsersService } from './models/users/users.service';
 import { HttpModule } from '@nestjs/axios';
 import { MongooseModule } from '@nestjs/mongoose';
-import { User, UserSchema } from './models/users/schemas/user.schema';
+import { User, UserSchema } from './models/users/schema/user.schema';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { Note, NoteSchema } from './models/notes/schema/notes.schema';
 
 @Module({
   imports: [
@@ -21,7 +22,10 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       }),
       inject: [ConfigService],
     }),
-    MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
+    MongooseModule.forFeature([
+      { name: User.name, schema: UserSchema },
+      { name: Note.name, schema: NoteSchema },
+    ]),
   ],
   controllers: [UsersController],
   providers: [UsersService],
