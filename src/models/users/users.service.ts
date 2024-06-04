@@ -9,19 +9,27 @@ import { HttpService } from '@nestjs/axios';
 import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument } from './schemas/user.schema';
 import { Model, Types } from 'mongoose';
-import { Filters } from './interfaces/user-filters';
+import { Filters, OrderBy, OrderDirection } from './interfaces/user-filters';
+import { UpdateUserData } from './interfaces/update-user';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectModel(User.name) private userDocument: Model<UserDocument>,
-    private readonly requestService: HttpService,
   ) {}
 
   async createUser(userBody: UserData) {
     const validateEmail = await this.userDocument.findOne({
       email: userBody.email,
     });
+
+    const { name, lastName, password } = userBody;
+
+    userBody.password = await bcrypt.hash(password, 10);
+    userBody.name = name[0].toUpperCase() + name.slice(1);
+    userBody.lastName = lastName[0].toUpperCase() + lastName.slice(1);
+
     if (validateEmail) {
       throw new HttpException(
         'already exists an user with the same e-mail',
@@ -58,7 +66,10 @@ export class UsersService {
 
   async getUsers(filters: Filters) {
     const queryFilters = {};
-    const { pageNumber, pageItems, name, lastName, orderBy } = filters;
+    const { pageNumber, pageItems, name, lastName, orderBy, orderDirection } =
+      filters;
+    const order = {};
+
     let skipNumber = 0;
     let limitNumber = 10;
 
@@ -71,12 +82,16 @@ export class UsersService {
       queryFilters['name'] = name;
     }
 
-    if (lastName) {
-      queryFilters['lastName'] = lastName;
+    if (lastName) queryFilters['lastName'] = lastName;
+
+    if (OrderBy[orderBy] && OrderDirection[orderDirection]) {
+      order[orderBy] = orderDirection === OrderDirection['asc'] ? -1 : 1;
+      console.log(order);
     }
 
     const users = await this.userDocument
       .find(queryFilters)
+      .sort(order)
       .limit(limitNumber)
       .skip(skipNumber);
     return users.map((obj) => {
@@ -87,6 +102,44 @@ export class UsersService {
         birthDate: obj.birthDate,
       };
     });
+  }
+
+  async updateUser(id: string, body: UpdateUserData) {
+    this.validateId(id);
+    const user = await this.validateUser(id);
+
+    const updateData = {};
+    const { name, lastName, birthDate, password } = body;
+
+    if (name) {
+      const treatedName = name[0].toUpperCase() + name.slice(1);
+      updateData['name'] = treatedName;
+    }
+
+    if (lastName) {
+      const treatedLastName = lastName[0].toUpperCase() + lastName.slice(1);
+      updateData['lastName'] = treatedLastName;
+    }
+
+    if (birthDate) updateData['birthDate'] = birthDate;
+    if (password) {
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (isMatch) {
+        throw new HttpException(
+          'new password must be different from the last one',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      const hashedPassword = await bcrypt.hash(password, 10);
+      updateData['password'] = hashedPassword;
+    }
+
+    await this.userDocument.updateOne({ _id: id }, { $set: updateData });
+
+    return {
+      id: id,
+      message: 'User updated with sucess',
+    };
   }
 
   private validateId(id: string) {

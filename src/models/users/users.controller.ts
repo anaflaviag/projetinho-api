@@ -5,11 +5,13 @@ import {
   Get,
   Param,
   Post,
+  Put,
   Query,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UserData } from './interfaces/create-user';
 import { Filters } from './interfaces/user-filters';
+import { UpdateUserData } from './interfaces/update-user';
 
 @Controller('user')
 export class UsersController {
@@ -33,5 +35,10 @@ export class UsersController {
   @Get('get')
   getUsers(@Query() filters: Filters) {
     return this.usersService.getUsers(filters);
+  }
+
+  @Put('update/:id')
+  updateUser(@Param('id') id: string, @Body() body: UpdateUserData) {
+    return this.usersService.updateUser(id, body);
   }
 }
