@@ -12,6 +12,7 @@ import { Model, Types } from 'mongoose';
 import { Filters, OrderBy, OrderDirection } from './interfaces/user-filters';
 import { UpdateUserData } from './interfaces/update-user';
 import * as bcrypt from 'bcrypt';
+import { validateId } from 'src/utils/validate-id';
 
 @Injectable()
 export class UsersService {
@@ -44,7 +45,7 @@ export class UsersService {
   }
 
   async deleteUser(id: string) {
-    this.validateId(id);
+    validateId(id);
     const user = await this.validateUser(id);
     await this.userDocument.deleteOne({ _id: user._id });
     return {
@@ -54,7 +55,7 @@ export class UsersService {
   }
 
   async getUser(id: string) {
-    this.validateId(id);
+    validateId(id);
     const user = await this.validateUser(id);
     return {
       name: user.name,
@@ -105,7 +106,7 @@ export class UsersService {
   }
 
   async updateUser(id: string, body: UpdateUserData) {
-    this.validateId(id);
+    validateId(id);
     const user = await this.validateUser(id);
 
     const updateData = {};
@@ -140,12 +141,6 @@ export class UsersService {
       id: id,
       message: 'User updated with sucess',
     };
-  }
-
-  private validateId(id: string) {
-    if (!Types.ObjectId.isValid(id)) {
-      throw new HttpException('invalid id', HttpStatus.BAD_REQUEST);
-    }
   }
 
   private async validateUser(id: string) {
